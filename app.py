@@ -111,7 +111,7 @@ def load_custom_css():
 # Load CSV data
 @st.cache_data
 def load_csv_data():
-    return pd.read_csv('combined.csv')
+    return pd.read_csv('data/combined.csv')
 
 df = load_csv_data()
 

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from PIL import Image
 from io import BytesIO
 from tensorflow.keras.applications.vgg16 import preprocess_input

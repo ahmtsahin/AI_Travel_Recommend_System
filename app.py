@@ -307,7 +307,7 @@ def main():
     # Main area
     tab1, tab2 = st.tabs(["As similar as your Image", "Travel Chatbot"])
 
-     with tab1:
+    with tab1:
         if st.session_state.uploaded_image:
             st.image(st.session_state.uploaded_image, caption="Uploaded Image", use_column_width=True,width=600)
 

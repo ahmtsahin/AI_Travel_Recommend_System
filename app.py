@@ -3,7 +3,9 @@ import pandas as pd
 from tensorflow.keras.applications import VGG16
 from huggingface_hub import login
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
-from langchain_community.vectorstores import FAISS
+from langchain.vectorstores import FAISS  # Updated import
+from langchain.memory import ConversationBufferMemory  # Added import
+from langchain.chains import ConversationalRetrievalChain  # Added import
 import spacy
 import os
 import random
@@ -12,6 +14,7 @@ from utils.data_handler import load_features
 from utils.image_processor import extract_features, find_top_matches_city
 from utils.hotel_recommender import top_hotels, display_hotel_card
 from utils.chatbot import setup_chatbot, extract_city_nlp
+
 
 # Set page config
 st.set_page_config(page_title="Travel Recommender & Chatbot", layout="wide")

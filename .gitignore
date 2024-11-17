@@ -41,3 +41,6 @@ faiss_index/
 
 # Environment variables
 .env
+# Large files (if not using Git LFS)
+*.pkl
+!data/features_chunks/*.pkl  # Allow chunked feature files

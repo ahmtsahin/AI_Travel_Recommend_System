@@ -21,7 +21,7 @@ import spacy
 import requests
 
 # Configuration and Environment Variables
-HF_TOKEN = st.secrets["HF_TOKEN"]  # Store your Hugging Face token in Streamlit secrets
+HF_TOKEN ="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"
 GDRIVE_URL = "https://drive.google.com/file/d/1lF_srcpxCneo7TgCtNgEol8HD-cEg7PL/view?usp=drive_link"
 GDRIVE_FILE_ID = GDRIVE_URL.split('/')[-2]
 GDRIVE_DOWNLOAD_URL = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"

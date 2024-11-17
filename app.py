@@ -33,7 +33,12 @@ def load_custom_css():
 def load_models_and_data():
     try:
         # Load HuggingFace token from environment variable
-        hf_token = st.secrets["MY_API_KEY"]
+        hf_token = os.getenv('MY_API_KEY')
+        if not hf_token:
+            st.error("HuggingFace token not found. Please set HUGGINGFACE_TOKEN environment variable.")
+            st.stop()
+        
+        login(hf_token)
        
 
         if not hf_token:

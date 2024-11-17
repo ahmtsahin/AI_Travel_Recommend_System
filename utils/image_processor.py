@@ -19,10 +19,12 @@ def extract_features(image_data, model):
         raise Exception(f"Error processing image: {e}")
 
 def find_top_matches_city(image_features, image_df, top_n=3):
-    """Find top matching cities based on image features."""
-    image_df['similarity'] = image_df['features'].apply(
-        lambda x: cosine_similarity([image_features], [x]).flatten()[0]
-    )
-    top_matches = image_df.loc[image_df.groupby('city')['similarity'].idxmax()]
-    top_matches = top_matches.sort_values(by='similarity', ascending=False).head(top_n)
-    return top_matches.reset_index(drop=True)
+    """Find top matching cities based on feature similarity."""
+    similarities = []
+    for _, row in image_df.iterrows():
+        sim = cosine_similarity([image_features], [row['features']])[0][0]
+        similarities.append(sim)
+    
+    # Create similarity series
+    similarity_series = pd.Series(similarities, index=image_df['city'])
+    return similarity_series.sort_values(ascending=False).head(top_n)

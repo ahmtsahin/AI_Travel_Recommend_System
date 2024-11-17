@@ -3,9 +3,10 @@ pandas
 numpy
 tensorflow
 scikit-learn
-Pillow
+Pillow==10.1.0
 huggingface-hub
 langchain
+langchain_community
 langchain-huggingface
 faiss-cpu
 spacy

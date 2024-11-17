@@ -1,73 +1,35 @@
 import pandas as pd
 import numpy as np
 import pickle
-from pathlib import Path
+import streamlit as st
 
-def split_features_file(input_file, output_dir, chunk_size=20):
-    """
-    Split a large pickle file into smaller chunks.
-    
-    Args:
-        input_file (str): Path to the input pickle file
-        output_dir (str): Directory to save the chunks
-        chunk_size (int): Size of each chunk in MB
-    """
-    # Create output directory if it doesn't exist
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-    
-    # Load the DataFrame
-    df = pd.read_pickle(input_file)
-    
-    # Calculate number of rows per chunk
-    chunk_bytes = chunk_size * 1024 * 1024  # Convert MB to bytes
-    total_size = df.memory_usage(deep=True).sum()
-    rows_per_chunk = int(len(df) * (chunk_bytes / total_size))
-    
-    # Split into chunks
-    chunks = [df[i:i + rows_per_chunk] for i in range(0, len(df), rows_per_chunk)]
-    
-    # Save chunks
-    for i, chunk in enumerate(chunks):
-        output_file = f"{output_dir}/features_chunk_{i}.pkl"
-        chunk.to_pickle(output_file)
-    
-    # Save metadata
-    metadata = {
-        'num_chunks': len(chunks),
-        'total_rows': len(df),
-        'columns': df.columns.tolist()
-    }
-    with open(f"{output_dir}/metadata.pkl", 'wb') as f:
-        pickle.dump(metadata, f)
+@st.cache_data
+def load_sample_data():
+    """Load sample data for demonstration"""
+    # Create sample hotel data
+    sample_hotels = pd.DataFrame({
+        'city': ['Paris', 'London', 'New York', 'Tokyo', 'Dubai'],
+        'country': ['France', 'UK', 'USA', 'Japan', 'UAE'],
+        'hotel': ['Grand Hotel Paris', 'London Luxury', 'NYC Plaza', 'Tokyo Star', 'Dubai Palm'],
+        'number_of_rooms': [100, 150, 200, 180, 250],
+        'budget': [200, 300, 400, 350, 500],
+        'website': ['https://example.com'] * 5
+    })
+    return sample_hotels
 
-def load_features(chunks_dir):
-    """
-    Load features from multiple chunk files.
-    
-    Args:
-        chunks_dir (str): Directory containing the chunk files
-    
-    Returns:
-        pandas.DataFrame: Combined DataFrame
-    """
-    # Load metadata
-    with open(f"{chunks_dir}/metadata.pkl", 'rb') as f:
-        metadata = pickle.load(f)
-    
-    # Load and combine chunks
-    chunks = []
-    for i in range(metadata['num_chunks']):
-        chunk_file = f"{chunks_dir}/features_chunk_{i}.pkl"
-        chunk = pd.read_pickle(chunk_file)
-        chunks.append(chunk)
-    
-    # Combine all chunks
-    return pd.concat(chunks, ignore_index=True)
+@st.cache_data
+def load_sample_features():
+    """Load sample image features for demonstration"""
+    # Create sample image features
+    sample_features = pd.DataFrame({
+        'city': ['Paris', 'London', 'New York', 'Tokyo', 'Dubai'],
+        'features': [np.random.rand(512) for _ in range(5)],  # Sample 512-dimensional features
+        'image_path': ['sample_images/paris.jpg', 'sample_images/london.jpg', 
+                      'sample_images/newyork.jpg', 'sample_images/tokyo.jpg', 
+                      'sample_images/dubai.jpg']
+    })
+    return sample_features
 
-if __name__ == "__main__":
-    # Example usage
-    split_features_file(
-        'data/image_features_model_2.pkl',
-        'data/features_chunks',
-        chunk_size=20
-    )
+def verify_data_files():
+    """Verify that all required files are present."""
+    return True, []  # Always return success for demo

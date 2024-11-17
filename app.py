@@ -102,12 +102,24 @@ def extract_features(image_data, model):
         st.error(f"Error processing image: {e}")
         return None
 
-# Rest of your functions remain the same
 def find_top_matches_city(image_features, image_df, top_n=3):
-    # ... (your existing function)
+    image_df['similarity'] = image_df['features'].apply(
+        lambda x: cosine_similarity([image_features], [x]).flatten()[0]
+    )
+    top_matches = image_df.loc[image_df.groupby('city')['similarity'].idxmax()]
+    top_matches = top_matches.sort_values(by='similarity', ascending=False).head(top_n)
+    return top_matches.reset_index(drop=True)
 
+# ------------------------------
+# Hotel Recommendation Function
+# ------------------------------
 def top_hotels(city, budget, number_of_rooms, df):
-    # ... (your existing function)
+    filtered_df = df[
+        (df['city'].str.lower() == city.lower()) &
+        (df['budget'] <= budget) &
+        (df['number_of_rooms'] >= number_of_rooms)
+    ]
+    return filtered_df.reset_index(drop=True)
 
 # Setup retriever and memory for chatbot
 retriever = vector_db.as_retriever(search_kwargs={"k": 4})

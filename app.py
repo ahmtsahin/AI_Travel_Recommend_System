@@ -19,7 +19,6 @@ from langchain_core.prompts import PromptTemplate
 import random
 import spacy
 import requests
-from streamlit_super_slider import st_slider
 
 # Configuration and Environment Variables
 HF_TOKEN = st.secrets["HF_TOKEN"]  # Store your Hugging Face token in Streamlit secrets
@@ -34,10 +33,85 @@ login(HF_TOKEN)
 hf_model = "mistralai/Mistral-7B-Instruct-v0.3"
 llm_stat = HuggingFaceEndpoint(repo_id=hf_model)
 
-# Load CSV data from GitHub/remote source
+# Load custom CSS
+def load_custom_css():
+    custom_css = """
+    <style>
+        body {
+            background-color: #c2c2c2 !important;
+        }
+        .stApp {
+            background-color: #c2c2c2 !important;
+        }
+        .stButton>button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.6em 1.2em;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .stButton>button:hover {
+            background-color: #45a049;
+        }
+        .header-title {
+            font-size: 3em;
+            font-weight: 700;
+            color: #4A90E2;
+            margin-bottom: 0.2em;
+        }
+        .subheader-title {
+            font-size: 1.5em;
+            color: #4A90E2;
+            margin-top: 0.5em;
+            margin-bottom: 1em;
+        }
+        .recommendation-card {
+            background-color: white;
+            padding: 1.5em;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5em;
+        }
+        .recommendation-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 1em;
+        }
+        .city-selection-button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5em;
+        }
+        .city-selection-button:hover {
+            background-color: #357ABD;
+        }
+        .footer {
+            text-align: center;
+            color: #888;
+            padding: 2em 0 1em 0;
+        }
+        .footer a {
+            color: #4A90E2;
+            text-decoration: none;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
+
+# Load CSV data
 @st.cache_data
 def load_csv_data():
-    return pd.read_csv('combined.csv')  # Upload this to your GitHub repo
+    return pd.read_csv('combined.csv')
 
 df = load_csv_data()
 
@@ -49,7 +123,7 @@ def setup_embeddings():
 
 embeddings_stat = setup_embeddings()
 
-# Load vector database - this should be stored in your GitHub repo
+# Load vector database
 @st.cache_resource
 def load_vector_db():
     return FAISS.load_local("faiss_index", embeddings_stat, allow_dangerous_deserialization=True)
@@ -63,30 +137,15 @@ def load_spacy():
 
 nlp = load_spacy()
 
-# Custom CSS remains the same
-def load_custom_css():
-    custom_css = """
-    <style>
-        /* General Styling */
-       body {
-            background-color: #c2c2c2 !important;
-        }
-        .stApp {
-            background-color: #c2c2c2 !important;
-        }
-        /* ... rest of your CSS ... */
-    </style>
-    """
-    st.markdown(custom_css, unsafe_allow_html=True)
-
 # Load Data and Models with Google Drive Integration
 @st.cache_resource(show_spinner=False)
 def load_models_and_data():
-    # Download pickle file from Google Drive
     response = requests.get(GDRIVE_DOWNLOAD_URL)
     image_df = pd.read_pickle(BytesIO(response.content))
     model = VGG16(weights='imagenet', include_top=False, pooling='avg')
     return image_df, model, df
+
+image_df, model, df = load_models_and_data()
 
 # Feature Extraction Function
 def extract_features(image_data, model):
@@ -102,6 +161,7 @@ def extract_features(image_data, model):
         st.error(f"Error processing image: {e}")
         return None
 
+# Find Top Matching Cities
 def find_top_matches_city(image_features, image_df, top_n=3):
     image_df['similarity'] = image_df['features'].apply(
         lambda x: cosine_similarity([image_features], [x]).flatten()[0]
@@ -110,9 +170,7 @@ def find_top_matches_city(image_features, image_df, top_n=3):
     top_matches = top_matches.sort_values(by='similarity', ascending=False).head(top_n)
     return top_matches.reset_index(drop=True)
 
-# ------------------------------
 # Hotel Recommendation Function
-# ------------------------------
 def top_hotels(city, budget, number_of_rooms, df):
     filtered_df = df[
         (df['city'].str.lower() == city.lower()) &
@@ -145,6 +203,68 @@ chain = ConversationalRetrievalChain.from_llm(
     return_source_documents=False,
     combine_docs_chain_kwargs={"prompt": prompt}
 )
+
+def extract_city_nlp(user_input):
+    doc = nlp(user_input)
+    for ent in doc.ents:
+        if ent.label_ == "GPE":
+            return ent.text
+    return "City not found"
+
+# Display Hotel Recommendations
+def display_hotel_recommendations(city, budget, number_of_rooms):
+    st.subheader(f"🏨 Top Hotels in {city}")
+    recommendations = top_hotels(city, budget, number_of_rooms, df)
+    if not recommendations.empty:
+        for idx, row in recommendations.head(5).iterrows():
+            with st.container():
+                st.markdown(f"""
+                    <div class='recommendation-card'>
+                        <h3>{row['hotel']}</h3>
+                        <p><strong>City:</strong> {row['city']}</p>
+                        <p><strong>Country:</strong> {row['country']}</p>
+                        <p><strong>Price per Night:</strong> ${row['budget']}</p>
+                        <p><strong>Available Rooms:</strong> {row['number_of_rooms']}</p>
+                        <a href='{row['website']}' target='_blank' class='city-selection-button'>Book Now</a>
+                    </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.warning(f"Sorry, no hotels match your criteria in {city}.")
+
+# Hotel Chatbot Function
+def hotel_chatbot():
+    st.subheader("Hotel Recommender")
+    if 'recommendations' not in st.session_state:
+        st.session_state.recommendations = pd.DataFrame()
+    
+    city = st.session_state.get("selected_city", "").strip().title()
+    
+    budget = st.number_input("What is your budget per night?", min_value=0.0, step=1.0)
+    number_of_rooms = st.number_input("How many rooms do you need?", min_value=1, step=1)
+
+    if st.button("Find Hotels"):
+        if city and budget > 0 and number_of_rooms > 0:
+            try:
+                recommendations = top_hotels(city, budget, number_of_rooms, df)
+                if recommendations.empty:
+                    st.write(f"Sorry, no hotels match your criteria in {city}.")
+                else:
+                    st.write(f"Here are the top hotel recommendations for you in {city}:")
+                    display_columns = ['city', 'country', 'hotel', 'number_of_rooms', 'budget', 'website']
+                    top_recommendations = recommendations[display_columns].head(5)
+                    html = top_recommendations.to_html(escape=False, index=False, formatters={
+                        'website': lambda x: f'<a href="{x}" target="_blank">Book Here</a>'
+                    })
+                    st.markdown(html, unsafe_allow_html=True)
+            except Exception as e:
+                st.write(f"An error occurred: {str(e)}")
+        else:
+            st.write("Please enter all the required fields correctly.")
+    
+    if st.button("Clear Search"):
+        st.session_state.recommendations = pd.DataFrame()
+        st.session_state.hotel_chat = False
+        st.rerun()
 
 def main():
     st.markdown("<h1 class='header-title'>🌍 Travel Recommender & Chatbot</h1>", unsafe_allow_html=True)
@@ -187,7 +307,7 @@ def main():
     # Main area
     tab1, tab2 = st.tabs(["As similar as your Image", "Travel Chatbot"])
 
-    with tab1:
+     with tab1:
         if st.session_state.uploaded_image:
             st.image(st.session_state.uploaded_image, caption="Uploaded Image", use_column_width=True,width=600)
 

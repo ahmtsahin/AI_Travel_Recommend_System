@@ -3,7 +3,7 @@ pandas
 numpy
 tensorflow
 scikit-learn
-Pillow==10.1.0
+Pillow
 huggingface-hub
 langchain
 langchain_community

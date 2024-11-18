@@ -18,6 +18,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate
 import random
 import spacy
+from streamlit_super_slider import st_slider
 import requests
 
 # Configuration and Environment Variables

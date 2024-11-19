@@ -1,31 +1,69 @@
 import numpy as np
-import pandas as pd
-from PIL import Image
-from io import BytesIO
-from tensorflow.keras.applications.vgg16 import preprocess_input
-from tensorflow.keras.preprocessing.image import img_to_array
 from sklearn.metrics.pairwise import cosine_similarity
+import pandas as pd
+from .data_handler import load_features
 
 def extract_features(image_data, model):
-    """Extract features from image using VGG16 model."""
-    try:
-        img = Image.open(BytesIO(image_data)).convert("RGB")
-        img = img.resize((224, 224))
-        img_data = img_to_array(img)
-        img_data = np.expand_dims(img_data, axis=0)
-        img_data = preprocess_input(img_data)
-        features = model.predict(img_data)
-        return features.flatten()
-    except Exception as e:
-        raise Exception(f"Error processing image: {e}")
-
-def find_top_matches_city(image_features, image_df, top_n=3):
-    """Find top matching cities based on feature similarity."""
-    similarities = []
-    for _, row in image_df.iterrows():
-        sim = cosine_similarity([image_features], [row['features']])[0][0]
-        similarities.append(sim)
+    """
+    Extract features from an image using the provided model.
     
-    # Create similarity series
-    similarity_series = pd.Series(similarities, index=image_df['city'])
-    return similarity_series.sort_values(ascending=False).head(top_n)
+    Args:
+        image_data (bytes): Raw image data
+        model: Pre-trained model for feature extraction
+        
+    Returns:
+        numpy.ndarray: Extracted features
+    """
+    try:
+        # Load and preprocess the image
+        preprocessed_image = load_features(image_data)
+        
+        if preprocessed_image is None:
+            return None
+            
+        # Extract features using the model
+        features = model.predict(preprocessed_image)
+        
+        return features
+        
+    except Exception as e:
+        print(f"Error in extract_features: {str(e)}")
+        return None
+
+def find_top_matches_city(query_features, image_df, top_n=3):
+    """
+    Find top matching cities based on image features.
+    
+    Args:
+        query_features (numpy.ndarray): Features of the query image
+        image_df (pandas.DataFrame): DataFrame containing city images and their features
+        top_n (int): Number of top matches to return
+        
+    Returns:
+        pandas.DataFrame: Top matching cities with their information
+    """
+    try:
+        # Calculate similarity scores
+        similarities = []
+        for idx, row in image_df.iterrows():
+            sim_score = cosine_similarity(
+                query_features.reshape(1, -1),
+                row['features'].reshape(1, -1)
+            )[0][0]
+            similarities.append((idx, sim_score))
+        
+        # Sort by similarity score
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        
+        # Get top N matches
+        top_indices = [idx for idx, _ in similarities[:top_n]]
+        top_matches = image_df.iloc[top_indices].copy()
+        
+        # Add similarity scores
+        top_matches['similarity_score'] = [sim for _, sim in similarities[:top_n]]
+        
+        return top_matches
+        
+    except Exception as e:
+        print(f"Error in find_top_matches_city: {str(e)}")
+        return pd.DataFrame()

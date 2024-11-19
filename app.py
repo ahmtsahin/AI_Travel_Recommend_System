@@ -16,7 +16,12 @@ tf.keras.backend.clear_session()  # Clear any existing Keras sessions
 os.environ['TF_KERAS'] = '1'
 
 # Import VGG16 from tf-keras applications
-from tensorflow.keras.applications import VGG16
+try:
+    from tensorflow.keras.applications.vgg16 import VGG16
+    from tensorflow.keras.applications.vgg16 import preprocess_input
+except ImportError:
+    st.error("Failed to import VGG16 from tensorflow.keras")
+    st.stop()
 
 # Rest of the imports
 from huggingface_hub import login
@@ -34,7 +39,7 @@ from utils.chatbot import setup_chatbot, extract_city_nlp
 # Set page config
 st.set_page_config(page_title="Travel Recommender & Chatbot", layout="wide")
 
-# Custom CSS definition
+# Custom CSS definition (same as before)
 def load_custom_css():
     """Load custom CSS styles"""
     css = """
@@ -126,9 +131,12 @@ def load_models_and_data():
             st.stop()
         image_df = pd.read_pickle(BytesIO(response.content))
         
-        # Load VGG16 model with explicit tf-keras
-        with tf.keras.utils.custom_object_scope():
+        # Load VGG16 model
+        try:
             model = VGG16(weights='imagenet', include_top=False, pooling='avg')
+        except Exception as e:
+            st.error(f"Error loading VGG16 model: {str(e)}")
+            st.stop()
         
         # Load other components
         df = pd.read_csv('data/combined.csv')

@@ -271,7 +271,7 @@ def main():
         # Main content tabs
         tab1, tab2 = st.tabs(["Image-Based Search", "Travel Chatbot"])
 
-# Image-Based Search Tab
+        # Image-Based Search Tab
 with tab1:
     if st.session_state.uploaded_image:
         try:
@@ -340,6 +340,8 @@ with tab1:
             st.error(f"Error processing image: {str(e)}")
     else:
         st.info("👆 Upload an image in the sidebar to get destination recommendations!")
+
+
         
         # Chatbot Tab
         with tab2:

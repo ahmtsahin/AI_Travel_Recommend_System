@@ -106,11 +106,7 @@ def load_custom_css():
 @st.cache_resource(show_spinner=False)
 def load_models_and_data():
     try:
-        # Verify TensorFlow and Keras versions
-        tf_version = tf.__version__
-        keras_version = tf.keras.__version__
-        st.info(f"TensorFlow version: {tf_version}")
-        st.info(f"Keras version: {keras_version}")
+
         
         # Load HuggingFace token
         hf_token = st.secrets.get("HUGGINGFACE_TOKEN", "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")

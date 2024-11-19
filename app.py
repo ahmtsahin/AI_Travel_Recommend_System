@@ -1,90 +1,105 @@
 import streamlit as st
 import pandas as pd
+import os
+import random
+from PIL import Image
+import requests
+from io import BytesIO
+import warnings
+warnings.filterwarnings('ignore')
+
+# Import TensorFlow and ensure tf-keras is used
+import tensorflow as tf
+tf.keras.backend.clear_session()  # Clear any existing Keras sessions
+
+# Force TensorFlow to use tf-keras
+os.environ['TF_KERAS'] = '1'
+
+# Import VGG16 from tf-keras applications
 from tensorflow.keras.applications import VGG16
+
+# Rest of the imports
 from huggingface_hub import login
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
 from langchain.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 import spacy
-import os
-import random
-from PIL import Image
+
 from utils.data_handler import load_features
 from utils.image_processor import extract_features, find_top_matches_city
 from utils.hotel_recommender import top_hotels, display_hotel_card
 from utils.chatbot import setup_chatbot, extract_city_nlp
-import requests
-from io import BytesIO
 
 # Set page config
 st.set_page_config(page_title="Travel Recommender & Chatbot", layout="wide")
 
-# Google Drive file ID
-GDRIVE_FILE_ID = "1lF_srcpxCneo7TgCtNgEol8HD-cEg7PL"
-GDRIVE_DOWNLOAD_URL = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
-
-# Load custom CSS
-def load_custom_css():
-    try:
-        with open('assets/styles.css') as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.warning("Custom CSS file not found. Using default styling.")
-    except Exception as e:
-        st.error(f"Error loading CSS: {str(e)}")
-
 @st.cache_resource(show_spinner=False)
 def load_models_and_data():
     try:
-        # Load HuggingFace token from environment variable
-        hf_token = "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"
+        # Verify TensorFlow and Keras versions
+        tf_version = tf.__version__
+        keras_version = tf.keras.__version__
+        st.info(f"TensorFlow version: {tf_version}")
+        st.info(f"Keras version: {keras_version}")
+        
+        # Load HuggingFace token
+        hf_token = st.secrets.get("HUGGINGFACE_TOKEN", "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")
         if not hf_token:
-            st.error("HuggingFace token not found. Please set HUGGINGFACE_TOKEN environment variable.")
+            st.error("HuggingFace token not found in environment variables.")
             st.stop()
         
+        # Initialize HuggingFace
         login(hf_token)
         
         # Load pickle file from Google Drive
-        try:
-            response = requests.get(GDRIVE_DOWNLOAD_URL)
-            if response.status_code != 200:
-                st.error("Failed to download file from Google Drive")
-                st.stop()
-            image_df = pd.read_pickle(BytesIO(response.content))
-        except Exception as e:
-            st.error(f"Error loading pickle file from Google Drive: {str(e)}")
-            st.stop()
-
-        # Load other models and data
-        model = VGG16(weights='imagenet', include_top=False, pooling='avg')
-        df = pd.read_csv('data/combined.csv')
+        GDRIVE_FILE_ID = "1lF_srcpxCneo7TgCtNgEol8HD-cEg7PL"
+        GDRIVE_DOWNLOAD_URL = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
         
-        # Load NLP model
+        response = requests.get(GDRIVE_DOWNLOAD_URL)
+        if response.status_code != 200:
+            st.error("Failed to download file from Google Drive")
+            st.stop()
+        image_df = pd.read_pickle(BytesIO(response.content))
+        
+        # Load VGG16 model with explicit tf-keras
+        with tf.keras.utils.custom_object_scope():
+            model = VGG16(weights='imagenet', include_top=False, pooling='avg')
+        
+        # Load other components
+        df = pd.read_csv('data/combined.csv')
         nlp = spacy.load("en_core_web_sm")
         
         # Setup LLM and embeddings
         hf_model = "mistralai/Mistral-7B-Instruct-v0.3"
-        llm = HuggingFaceEndpoint(repo_id=hf_model)
+        llm = HuggingFaceEndpoint(
+            repo_id=hf_model,
+            token=hf_token,
+            task="text-generation",
+            temperature=0.7,
+            max_length=512
+        )
         
         embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
-        embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
+        embeddings = HuggingFaceEmbeddings(
+            model_name=embedding_model,
+            encode_kwargs={'normalize_embeddings': True}
+        )
         
         # Load vector database
-        vector_db = FAISS.load_local("data/faiss_index", embeddings, allow_dangerous_deserialization=True)
+        vector_db = FAISS.load_local(
+            "data/faiss_index",
+            embeddings,
+            allow_dangerous_deserialization=True
+        )
         
         return image_df, model, df, nlp, llm, vector_db
     
-    except FileNotFoundError as e:
-        st.error(f"Required file not found: {str(e)}")
-        st.error("Please ensure all required files are present in the data directory.")
-        st.stop()
     except Exception as e:
         st.error(f"Error loading models and data: {str(e)}")
-        st.error("Please check your setup and try again.")
+        import traceback
+        st.error(f"Traceback: {traceback.format_exc()}")
         st.stop()
-
-# Rest of the code remains unchanged
 def init_session_state():
     state_vars = {
         'budget': 100,

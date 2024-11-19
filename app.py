@@ -270,33 +270,59 @@ def main():
         
         # Main content tabs
         tab1, tab2 = st.tabs(["Image-Based Search", "Travel Chatbot"])
-        
-        # Image-Based Search Tab
-        with tab1:
-            if st.session_state.uploaded_image:
-                st.image(st.session_state.uploaded_image, caption="Uploaded Image", use_column_width=True)
+
+# Image-Based Search Tab
+with tab1:
+    if st.session_state.uploaded_image:
+        try:
+            # Display uploaded image
+            st.image(st.session_state.uploaded_image, caption="Uploaded Image", use_column_width=True)
+            
+            if not st.session_state.image_analyzed:
+                with st.spinner('Analyzing image and fetching recommendations...'):
+                    # Read image data
+                    image_data = st.session_state.uploaded_image.read()
+                    
+                    # Extract features
+                    features = extract_features(image_data, model)
+                    
+                    if features is not None:
+                        st.session_state.image_features = features
+                        st.session_state.top_cities = find_top_matches_city(
+                            features,
+                            image_df,
+                            top_n=3
+                        )
+                        st.session_state.image_analyzed = True
+                    else:
+                        st.error("Failed to extract features from the image. Please try a different image.")
+            
+            # Display recommendations if available
+            if not st.session_state.top_cities.empty:
+                st.subheader("Top Matching Destinations")
                 
-                if not st.session_state.image_analyzed:
-                    with st.spinner('Analyzing image and fetching recommendations...'):
-                        image_data = st.session_state.uploaded_image.read()
-                        st.session_state.image_features = extract_features(image_data, model)
-                        if st.session_state.image_features is not None:
-                            st.session_state.top_cities = find_top_matches_city(
-                                st.session_state.image_features, 
-                                image_df
-                            )
-                            st.session_state.image_analyzed = True
-                        else:
-                            st.error("Failed to extract features from the image. Please try again with a different image.")
+                # Create columns for displaying cities
+                cols = st.columns(min(3, len(st.session_state.top_cities)))
                 
-                if not st.session_state.top_cities.empty:
-                    st.subheader("Top Matching Destinations")
-                    cols = st.columns(3)
-                    for idx, row in st.session_state.top_cities.iterrows():
+                # Display each city
+                for idx, (_, row) in enumerate(st.session_state.top_cities.iterrows()):
+                    if idx < len(cols):  # Ensure we don't exceed available columns
                         with cols[idx]:
                             try:
-                                city_image = Image.open(row['image_path'])
-                                st.image(city_image, caption=f"{row['city']}", use_column_width=True)
+                                # Display city name and similarity score
+                                st.markdown(f"### {row['city']}")
+                                if 'similarity' in row:
+                                    st.markdown(f"Match Score: {row['similarity']*100:.1f}%")
+                                
+                                # Display city image if available
+                                if 'image_path' in row and row['image_path']:
+                                    try:
+                                        city_image = Image.open(row['image_path'])
+                                        st.image(city_image, use_column_width=True)
+                                    except Exception as e:
+                                        st.warning("City image not available")
+                                
+                                # Add selection button
                                 if st.button(f"Select {row['city']}", key=f"select_{idx}"):
                                     display_hotel_recommendations(
                                         row['city'],
@@ -305,7 +331,15 @@ def main():
                                         df
                                     )
                             except Exception as e:
-                                st.error(f"Error displaying city image: {str(e)}")
+                                st.error(f"Error displaying city {idx+1}: {str(e)}")
+            else:
+                if st.session_state.image_analyzed:
+                    st.warning("No matching destinations found. Please try a different image.")
+        
+        except Exception as e:
+            st.error(f"Error processing image: {str(e)}")
+    else:
+        st.info("👆 Upload an image in the sidebar to get destination recommendations!")
         
         # Chatbot Tab
         with tab2:

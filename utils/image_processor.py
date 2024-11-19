@@ -3,8 +3,20 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from PIL import Image
 import io
-import os
+import requests
 from tensorflow.keras.applications.vgg16 import preprocess_input
+
+# Google Drive folder IDs
+GDRIVE_FOLDER_ID = "1QZB_4f3XQozXlnDv5NPU9XnbOABkGvYO"
+SPLASH_FOLDER_ID = "1f9HKf9YpyJRFu97U95GM5UHcuJAtV7P1" 
+SERP_FOLDER_ID = "1DX0idsg7fAQ_2N3d9fAeq_ffqxNJl12A"
+PEXEL_FOLDER_ID = "1YV3P0oHAciPJqlzKni_uRUZbx1BEC7iO"
+FLICKR_FOLDER_ID = "15isvmtC5W0ZDsDioK5ZNcYuenoB3StcS"
+
+
+def get_gdrive_direct_link(file_id):
+    """Convert Google Drive file ID to direct download link"""
+    return f"https://drive.google.com/uc?id={file_id}"
 
 def extract_features(image_data, model):
     """
@@ -42,46 +54,34 @@ def extract_features(image_data, model):
         print(f"Error in extract_features: {str(e)}")
         return None
 
-def load_city_image(image_path, image_type='splash'):
+def load_city_image_from_gdrive(image_name, image_type='splash'):
     """
-    Load city image from local directory.
+    Load city image from Google Drive.
     
     Args:
-        image_path (str): Path to the city image
+        image_name (str): Name of the image file
         image_type (str): Type of image ('splash' or 'serp')
         
     Returns:
         PIL.Image: Loaded image or None if failed
     """
     try:
-        if not image_path:
+        if not image_name:
             return None
             
-        # Adjust path based on image type
-        base_dir = "images_database"
-        if image_type == 'splash':
-            image_dir = os.path.join(base_dir, "images_splash")
-        else:
-            image_dir = os.path.join(base_dir, "images_serp")
-            
-        # Construct full path
-        full_path = os.path.join(image_dir, os.path.basename(image_path))
+        # Get the appropriate folder ID based on image type
+        folder_id = SPLASH_FOLDER_ID if image_type == 'splash' else SERP_FOLDER_ID
         
-        # Check if file exists
-        if os.path.exists(full_path):
-            return Image.open(full_path)
-            
-        # Try alternative image type if first one fails
-        alt_type = 'serp' if image_type == 'splash' else 'splash'
-        alt_dir = os.path.join(base_dir, f"images_{alt_type}")
-        alt_path = os.path.join(alt_dir, os.path.basename(image_path))
+        # Construct Google Drive API request
+        file_url = f"https://drive.google.com/uc?id={folder_id}/{image_name}"
         
-        if os.path.exists(alt_path):
-            return Image.open(alt_path)
+        response = requests.get(file_url)
+        if response.status_code == 200:
+            return Image.open(io.BytesIO(response.content))
             
         return None
     except Exception as e:
-        print(f"Error loading city image: {str(e)}")
+        print(f"Error loading city image from Google Drive: {str(e)}")
         return None
 
 def find_top_matches_city(query_features, image_df, top_n=3):
@@ -129,34 +129,14 @@ def find_top_matches_city(query_features, image_df, top_n=3):
         # Create result DataFrame
         result_df = image_df.iloc[top_indices].copy()
         
-        # Add similarity scores
+        # Add similarity scores and adjust image paths
         result_df['similarity'] = [sim for _, sim in similarities[:len(top_indices)]]
+        result_df['gdrive_image_id'] = result_df['image_path'].apply(
+            lambda x: x.split('/')[-1] if x else None
+        )
         
         return result_df
         
     except Exception as e:
         print(f"Error in find_top_matches_city: {str(e)}")
         return pd.DataFrame()
-
-def verify_image_paths():
-    """
-    Verify that the image directories exist and are accessible.
-    
-    Returns:
-        tuple: (bool, str) indicating success/failure and any error message
-    """
-    try:
-        base_dir = "images_database"
-        required_dirs = ["images_splash", "images_serp"]
-        
-        if not os.path.exists(base_dir):
-            return False, f"Base directory '{base_dir}' not found"
-            
-        for dir_name in required_dirs:
-            dir_path = os.path.join(base_dir, dir_name)
-            if not os.path.exists(dir_path):
-                return False, f"Required directory '{dir_name}' not found in {base_dir}"
-                
-        return True, "Image directories verified successfully"
-    except Exception as e:
-        return False, f"Error verifying image paths: {str(e)}"

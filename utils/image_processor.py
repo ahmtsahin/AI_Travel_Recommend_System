@@ -1,7 +1,9 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-from .data_handler import load_features
+from PIL import Image
+import io
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 def extract_features(image_data, model):
     """
@@ -15,16 +17,25 @@ def extract_features(image_data, model):
         numpy.ndarray: Extracted features
     """
     try:
-        # Load and preprocess the image
-        preprocessed_image = load_features(image_data)
+        # Open and preprocess the image
+        image = Image.open(io.BytesIO(image_data))
         
-        if preprocessed_image is None:
-            return None
-            
-        # Extract features using the model
-        features = model.predict(preprocessed_image)
+        # Convert image to RGB if necessary
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
         
-        return features
+        # Resize image to VGG16 input size
+        image = image.resize((224, 224))
+        
+        # Convert to array and preprocess
+        img_array = np.array(image)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
+        
+        # Extract features
+        features = model.predict(img_array)
+        
+        return features.flatten()
         
     except Exception as e:
         print(f"Error in extract_features: {str(e)}")
@@ -43,26 +54,42 @@ def find_top_matches_city(query_features, image_df, top_n=3):
         pandas.DataFrame: Top matching cities with their information
     """
     try:
-        # Calculate similarity scores
+        if query_features is None:
+            return pd.DataFrame()
+            
+        # Ensure query_features is 2D
+        query_features = query_features.reshape(1, -1)
+        
+        # Calculate similarities
         similarities = []
         for idx, row in image_df.iterrows():
-            sim_score = cosine_similarity(
-                query_features.reshape(1, -1),
-                row['features'].reshape(1, -1)
-            )[0][0]
-            similarities.append((idx, sim_score))
+            if 'features' in row and row['features'] is not None:
+                city_features = np.array(row['features']).reshape(1, -1)
+                sim = cosine_similarity(query_features, city_features)[0][0]
+                similarities.append((idx, sim))
         
-        # Sort by similarity score
+        if not similarities:
+            return pd.DataFrame()
+        
+        # Sort by similarity
         similarities.sort(key=lambda x: x[1], reverse=True)
         
-        # Get top N matches
-        top_indices = [idx for idx, _ in similarities[:top_n]]
-        top_matches = image_df.iloc[top_indices].copy()
+        # Get top N unique cities
+        seen_cities = set()
+        top_indices = []
+        for idx, _ in similarities:
+            city = image_df.iloc[idx]['city']
+            if city not in seen_cities and len(top_indices) < top_n:
+                seen_cities.add(city)
+                top_indices.append(idx)
+        
+        # Create result DataFrame
+        result_df = image_df.iloc[top_indices].copy()
         
         # Add similarity scores
-        top_matches['similarity_score'] = [sim for _, sim in similarities[:top_n]]
+        result_df['similarity'] = [sim for _, sim in similarities[:len(top_indices)]]
         
-        return top_matches
+        return result_df
         
     except Exception as e:
         print(f"Error in find_top_matches_city: {str(e)}")

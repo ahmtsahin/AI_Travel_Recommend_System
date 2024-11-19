@@ -3,6 +3,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from PIL import Image
 import io
+import os
 from tensorflow.keras.applications.vgg16 import preprocess_input
 
 def extract_features(image_data, model):
@@ -39,6 +40,48 @@ def extract_features(image_data, model):
         
     except Exception as e:
         print(f"Error in extract_features: {str(e)}")
+        return None
+
+def load_city_image(image_path, image_type='splash'):
+    """
+    Load city image from local directory.
+    
+    Args:
+        image_path (str): Path to the city image
+        image_type (str): Type of image ('splash' or 'serp')
+        
+    Returns:
+        PIL.Image: Loaded image or None if failed
+    """
+    try:
+        if not image_path:
+            return None
+            
+        # Adjust path based on image type
+        base_dir = "images_database"
+        if image_type == 'splash':
+            image_dir = os.path.join(base_dir, "images_splash")
+        else:
+            image_dir = os.path.join(base_dir, "images_serp")
+            
+        # Construct full path
+        full_path = os.path.join(image_dir, os.path.basename(image_path))
+        
+        # Check if file exists
+        if os.path.exists(full_path):
+            return Image.open(full_path)
+            
+        # Try alternative image type if first one fails
+        alt_type = 'serp' if image_type == 'splash' else 'splash'
+        alt_dir = os.path.join(base_dir, f"images_{alt_type}")
+        alt_path = os.path.join(alt_dir, os.path.basename(image_path))
+        
+        if os.path.exists(alt_path):
+            return Image.open(alt_path)
+            
+        return None
+    except Exception as e:
+        print(f"Error loading city image: {str(e)}")
         return None
 
 def find_top_matches_city(query_features, image_df, top_n=3):
@@ -94,3 +137,26 @@ def find_top_matches_city(query_features, image_df, top_n=3):
     except Exception as e:
         print(f"Error in find_top_matches_city: {str(e)}")
         return pd.DataFrame()
+
+def verify_image_paths():
+    """
+    Verify that the image directories exist and are accessible.
+    
+    Returns:
+        tuple: (bool, str) indicating success/failure and any error message
+    """
+    try:
+        base_dir = "images_database"
+        required_dirs = ["images_splash", "images_serp"]
+        
+        if not os.path.exists(base_dir):
+            return False, f"Base directory '{base_dir}' not found"
+            
+        for dir_name in required_dirs:
+            dir_path = os.path.join(base_dir, dir_name)
+            if not os.path.exists(dir_path):
+                return False, f"Required directory '{dir_name}' not found in {base_dir}"
+                
+        return True, "Image directories verified successfully"
+    except Exception as e:
+        return False, f"Error verifying image paths: {str(e)}"

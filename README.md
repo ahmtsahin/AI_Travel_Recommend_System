@@ -117,7 +117,7 @@ The application can be configured through the `.streamlit/config.toml` file. Key
 Upload any travel photo and get matching destinations!
 
 <div align="center">
-  <img src="screenshots/upload-demo.png" alt="Upload Demo" width="400"/>
+  <img src="screenshots/1.png" alt="Upload Demo" width="400"/>
   <p><em>Upload any inspiring travel photo</em></p>
 </div>
 

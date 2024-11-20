@@ -111,13 +111,14 @@ The application can be configured through the `.streamlit/config.toml` file. Key
 ### Video Demo
 [![Watch the demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://streamable.com/rzejaj)
 
-## ✨ Features & Screenshots
+## ✨ Screenshots
 
 ### 🖼️ Image Upload and Matching
 Upload any travel photo and get matching destinations!
 
 <div align="center">
   <img src="screenshots/1.png" alt="Upload Demo" width="400"/>
+  <img src="screenshots/2.png" alt="Upload Demo" width="400"/>
   <p><em>Upload any inspiring travel photo</em></p>
 </div>
 
@@ -127,12 +128,8 @@ Get personalized hotel suggestions based on your preferences.
 <table>
   <tr>
     <td width="50%">
-      <img src="screenshots/hotel-list.png" alt="Hotel List"/>
+      <img src="screenshots/3.png" alt="Upload Demo" width="400"/>
       <p align="center"><em>Hotel Listings</em></p>
-    </td>
-    <td width="50%">
-      <img src="screenshots/hotel-details.png" alt="Hotel Details"/>
-      <p align="center"><em>Detailed Hotel View</em></p>
     </td>
   </tr>
 </table>

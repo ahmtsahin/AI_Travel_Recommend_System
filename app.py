@@ -269,7 +269,7 @@ def main():
                                                              value=st.session_state.number_of_rooms)
         
 
-        # Main content tabs
+       # Main content tabs
         tab1, tab2 = st.tabs(["Image-Based Search", "Travel Chatbot"])
 
         # Image-Based Search Tab
@@ -315,38 +315,24 @@ def main():
                                         if 'similarity' in row:
                                             st.markdown(f"Match Score: {row['similarity']*100:.1f}%")
                                         
-                                        # Try to load and display city image
+                                        # Display city image if available
                                         if 'image_path' in row and row['image_path']:
                                             try:
-                                                # Load image from Google Drive
-                                                city_image = load_city_image_from_gdrive(row['image_path'])
-                                                
-                                                if city_image:
-                                                    st.image(city_image, use_column_width=True, caption=row['city'])
-                                                else:
-                                                    st.warning(f"No image available for {row['city']}")
+                                                city_image = Image.open(row['image_path'])
+                                                st.image(city_image, use_column_width=True)
                                             except Exception as e:
-                                                st.warning(f"Could not load image for {row['city']}")
-                                                print(f"Image loading error: {str(e)}")  # For debugging
+                                                st.warning("City image not available")
                                         
-                                        # Add selection buttons
-                                        col1, col2 = st.columns(2)
-                                        with col1:
-                                            if st.button(f"📍 View Hotels", key=f"select_{idx}"):
-                                                display_hotel_recommendations(
-                                                    row['city'],
-                                                    st.session_state.budget,
-                                                    st.session_state.number_of_rooms,
-                                                    df
-                                                )
-                                        with col2:
-                                            if st.button(f"ℹ️ About {row['city']}", key=f"info_{idx}"):
-                                                st.info(f"Loading information about {row['city']}...")
-                                                # Add city information here
-                                        
+                                        # Add selection button
+                                        if st.button(f"Select {row['city']}", key=f"select_{idx}"):
+                                            display_hotel_recommendations(
+                                                row['city'],
+                                                st.session_state.budget,
+                                                st.session_state.number_of_rooms,
+                                                df
+                                            )
                                     except Exception as e:
                                         st.error(f"Error displaying city {idx+1}: {str(e)}")
-                                        print(f"Detailed error: {str(e)}")  # For debugging
                     else:
                         if st.session_state.image_analyzed:
                             st.warning("No matching destinations found. Please try a different image.")
@@ -355,7 +341,6 @@ def main():
                     st.error(f"Error processing image: {str(e)}")
             else:
                 st.info("👆 Upload an image in the sidebar to get destination recommendations!")
-
 
         
         # Chatbot Tab

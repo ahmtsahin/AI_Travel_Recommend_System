@@ -386,7 +386,7 @@ def main():
         # Footer
         st.markdown(
             "<div class='footer'>Developed with ❤️ by "
-            "<a href='https://github.com/yourusername' target='_blank'>Your Name</a></div>", 
+            "<a href='https://github.com/ahmtsahin' target='_blank'>Ahmet Sahin</a></div>", 
             unsafe_allow_html=True
         )
     

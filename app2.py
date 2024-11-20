@@ -200,6 +200,7 @@ def main():
         if st.session_state.uploaded_image and not st.session_state.image_analyzed:
             with st.spinner('Analyzing image and fetching recommendations...'):
                 image_data = st.session_state.uploaded_image.read()
+                load_models_and_data()
                 st.session_state.image_features = extract_features(image_data, model)
                 if st.session_state.image_features is not None:
                     st.session_state.top_cities = find_top_matches_city(st.session_state.image_features, image_df, top_n=3)

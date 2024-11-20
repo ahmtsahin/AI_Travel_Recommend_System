@@ -151,7 +151,7 @@ def main():
     embeddings_stat = setup_embeddings()
     
     # Load vector database
-    vector_db = FAISS.load_local("faiss_index", embeddings_stat, allow_dangerous_deserialization=True)
+    vector_db = FAISS.load_local("data/faiss_index", embeddings_stat, allow_dangerous_deserialization=True)
 
     # Initialize session state variables
     if 'budget' not in st.session_state:

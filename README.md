@@ -109,7 +109,7 @@ The application can be configured through the `.streamlit/config.toml` file. Key
 - Contributors and maintainers of all dependencies
 
 ### Video Demo
-[![Watch the demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://streamable.com/rzejaj)
+[![Watch the demo]](https://streamable.com/rzejaj)
 
 ## ✨ Screenshots
 
@@ -119,7 +119,7 @@ Upload any travel photo and get matching destinations!
 <div align="center">
   <img src="screenshots/1.png" alt="Upload Demo" width="400"/>
   <img src="screenshots/2.png" alt="Upload Demo" width="400"/>
-  <p><em>Upload any inspiring travel photo</em></p>
+  
 </div>
 
 ### 🏨 Hotel Recommendations
@@ -133,5 +133,14 @@ Get personalized hotel suggestions based on your preferences.
     </td>
   </tr>
 </table>
+
+### 🖼️ Travel Chatbot
+Upload any travel photo and get matching destinations!
+
+<div align="center">
+  <img src="screenshots/chatbot_1.png" alt="Upload Demo" width="400"/>
+  <img src="screenshots/chatbot_2.png" alt="Upload Demo" width="400"/>
+  
+</div>
 
 

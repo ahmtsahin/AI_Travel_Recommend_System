@@ -129,6 +129,7 @@ Get personalized hotel suggestions based on your preferences.
   <tr>
     <td width="50%">
       <img src="screenshots/3.png" alt="Upload Demo" width="400"/>
+      <img src="screenshots/chatbot_hotel.png" alt="Upload Demo" width="400"/>
       <p align="center"><em>Hotel Listings</em></p>
     </td>
   </tr>

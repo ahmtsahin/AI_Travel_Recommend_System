@@ -1,26 +1,40 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-from tensorflow.keras.applications import VGG16
-from tensorflow.keras.applications.vgg16 import preprocess_input
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from sklearn.metrics.pairwise import cosine_similarity
 import os
-from io import BytesIO
+import random
 from PIL import Image
-from streamlit.components.v1 import html
+import requests
+from io import BytesIO
+import warnings
+warnings.filterwarnings('ignore')
+
+# Import TensorFlow and ensure tf-keras is used
+import tensorflow as tf
+tf.keras.backend.clear_session()  # Clear any existing Keras sessions
+
+# Force TensorFlow to use tf-keras
+os.environ['TF_KERAS'] = '1'
+
+# Import VGG16 from tf-keras applications
+try:
+    from tensorflow.keras.applications.vgg16 import VGG16
+    from tensorflow.keras.applications.vgg16 import preprocess_input
+except ImportError:
+    st.error("Failed to import VGG16 from tensorflow.keras")
+    st.stop()
+
+# Rest of the imports
 from huggingface_hub import login
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
-from langchain_community.vectorstores import FAISS
+from langchain.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-from langchain_core.prompts import PromptTemplate
-import random
 import spacy
-from streamlit_super_slider import st_slider
-import gdown
-import requests
+
+from utils.data_handler import load_features
+from utils.image_processor import extract_features, find_top_matches_city
+from utils.hotel_recommender import top_hotels, display_hotel_card
+from utils.chatbot import setup_chatbot, extract_city_nlp
 
 # Constants for Google Drive
 GDRIVE_FOLDER_ID = "1QZB_4f3XQozXlnDv5NPU9XnbOABkGvYO"

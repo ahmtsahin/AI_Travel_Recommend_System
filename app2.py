@@ -46,7 +46,7 @@ def load_pickle_file():
 # Authenticate with Hugging Face
 @st.cache_resource
 def setup_huggingface():
-    login(st.secrets["hf_token"])
+    login("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")
 
 # Load model and embeddings
 @st.cache_resource

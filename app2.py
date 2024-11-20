@@ -88,6 +88,41 @@ def get_image_from_drive(folder_id, image_path):
     response = requests.get(url)
     return Image.open(BytesIO(response.content))
 
+# Function to get image from Google Drive
+def get_image_from_drive(image_path):
+    # Determine which folder to use based on the path
+    if 'splash' in image_path.lower():
+        folder_id = SPLASH_FOLDER_ID
+    elif 'serp' in image_path.lower():
+        folder_id = SERP_FOLDER_ID
+    elif 'pexel' in image_path.lower():
+        folder_id = PEXEL_FOLDER_ID
+    elif 'flickr' in image_path.lower():
+        folder_id = FLICKR_FOLDER_ID
+    else:
+        folder_id = GDRIVE_FOLDER_ID
+
+    # Extract the filename from the path
+    filename = os.path.basename(image_path)
+    
+    # Create a cache directory if it doesn't exist
+    os.makedirs('image_cache', exist_ok=True)
+    cache_path = os.path.join('image_cache', filename)
+    
+    # Check if image is already in cache
+    if os.path.exists(cache_path):
+        return Image.open(cache_path)
+    
+    # If not in cache, download from Google Drive
+    try:
+        url = f'https://drive.google.com/uc?id={folder_id}/{filename}'
+        gdown.download(url, cache_path, quiet=True)
+        return Image.open(cache_path)
+    except Exception as e:
+        st.error(f"Error loading image: {e}")
+        # Return a placeholder image or raise an error
+        return None
+
 # Modified find_top_matches_city function
 def find_top_matches_city(image_features, image_df, top_n=3):
     image_df['similarity'] = image_df['features'].apply(

@@ -132,7 +132,7 @@ Context to answer question: {context}
 New human question: {question}
 Response:"""
 
-prompt = PromptTemplate(template=template, input_variables=["context", "question", "chat_history"])
+#prompt = PromptTemplate(template=template, input_variables=["context", "question", "chat_history"])
 
 # Setup the conversational chain
 chain = ConversationalRetrievalChain.from_llm(
@@ -140,7 +140,7 @@ chain = ConversationalRetrievalChain.from_llm(
     retriever=retriever,
     memory=memory,
     return_source_documents=False,
-    combine_docs_chain_kwargs={"prompt": prompt}
+    #combine_docs_chain_kwargs={"prompt": prompt}
 )
 
 def extract_city_nlp(user_input):

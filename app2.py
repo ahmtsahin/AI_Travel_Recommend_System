@@ -66,7 +66,19 @@ def load_models_and_data():
     model = VGG16(weights='imagenet', include_top=False, pooling='avg')
     df = pd.read_csv('data/combined.csv')  # Move this to a data folder in your repo
     return image_df, model, df
-
+    
+def extract_features(image_data, model):
+    try:
+        img = Image.open(BytesIO(image_data)).convert("RGB")
+        img = img.resize((224, 224))
+        img_data = img_to_array(img)
+        img_data = np.expand_dims(img_data, axis=0)
+        img_data = preprocess_input(img_data)
+        features = model.predict(img_data)
+        return features.flatten()
+    except Exception as e:
+        st.error(f"Error processing image: {e}")
+        return None
 # Function to get image from Google Drive
 def get_image_from_drive(folder_id, image_path):
     # Extract the image filename from the path

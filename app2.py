@@ -66,7 +66,7 @@ def load_models_and_data():
     model = VGG16(weights='imagenet', include_top=False, pooling='avg')
     df = pd.read_csv('data/combined.csv')  # Move this to a data folder in your repo
     return image_df, model, df
-    
+image_df, model, df = load_models_and_data()
 def extract_features(image_data, model):
     try:
         img = Image.open(BytesIO(image_data)).convert("RGB")

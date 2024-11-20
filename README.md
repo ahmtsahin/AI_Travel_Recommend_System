@@ -110,13 +110,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - TensorFlow team for VGG16 model
 - Hugging Face for the language models
 - Streamlit team for the wonderful framework
 - Contributors and maintainers of all dependencies
+
+### Video Demo
+[![Watch the demo](https://streamable.com/rzejaj)

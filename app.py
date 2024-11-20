@@ -109,7 +109,7 @@ def load_models_and_data():
 
         
         # Load HuggingFace token
-        hf_token = st.secrets.get("HUGGINGFACE_TOKEN", "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")
+        hf_token = st.secrets.get("HUGGINGFACE_TOKEN", "xxxxxxx")
         if not hf_token:
             st.error("HuggingFace token not found in environment variables.")
             st.stop()

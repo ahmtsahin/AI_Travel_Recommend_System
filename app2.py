@@ -111,6 +111,7 @@ def top_hotels(city, budget, number_of_rooms, df):
     return filtered_df.reset_index(drop=True)
 
 # Setup retriever and memory for chatbot
+vector_db = FAISS.load_local("data/faiss_index", embeddings_stat, allow_dangerous_deserialization=True)
 retriever = vector_db.as_retriever(search_kwargs={"k": 4})
 memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer')
 
@@ -151,7 +152,7 @@ def main():
     embeddings_stat = setup_embeddings()
     
     # Load vector database
-    vector_db = FAISS.load_local("data/faiss_index", embeddings_stat, allow_dangerous_deserialization=True)
+    
 
     # Initialize session state variables
     if 'budget' not in st.session_state:

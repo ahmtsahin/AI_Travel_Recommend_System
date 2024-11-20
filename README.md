@@ -118,4 +118,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Contributors and maintainers of all dependencies
 
 ### Video Demo
-[![Watch the demo](https://streamable.com/rzejaj)
+[![Watch the demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://streamable.com/rzejaj)

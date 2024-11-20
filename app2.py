@@ -111,6 +111,13 @@ def top_hotels(city, budget, number_of_rooms, df):
     return filtered_df.reset_index(drop=True)
 
 # Setup retriever and memory for chatbot
+# Initialize HuggingFace and models
+    
+setup_huggingface()
+llm_stat = setup_llm()
+embeddings_stat = setup_embeddings()
+    
+# Load vector database
 vector_db = FAISS.load_local("data/faiss_index", embeddings_stat, allow_dangerous_deserialization=True)
 retriever = vector_db.as_retriever(search_kwargs={"k": 4})
 memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer')
@@ -146,12 +153,7 @@ def extract_city_nlp(user_input):
 def main():
     st.markdown("<h1 class='header-title'>🌍 Travel Recommender & Chatbot</h1>", unsafe_allow_html=True)
     st.markdown("<p class='subheader-title'>Discover your next destination and perfect stay!</p>", unsafe_allow_html=True)
-    # Initialize HuggingFace and models
-    setup_huggingface()
-    llm_stat = setup_llm()
-    embeddings_stat = setup_embeddings()
-    
-    # Load vector database
+
     
 
     # Initialize session state variables

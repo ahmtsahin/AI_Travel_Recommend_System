@@ -117,8 +117,8 @@ The application can be configured through the `.streamlit/config.toml` file. Key
 Upload any travel photo and get matching destinations!
 
 <div align="center">
-  <img src="screenshots/1.png" alt="Upload Demo" width="400"/>
   <img src="screenshots/2.png" alt="Upload Demo" width="400"/>
+  <img src="screenshots/1.png" alt="Upload Demo" width="400"/>
   
 </div>
 
@@ -138,8 +138,8 @@ Get personalized hotel suggestions based on your preferences.
 Upload any travel photo and get matching destinations!
 
 <div align="center">
-  <img src="screenshots/chatbot_1.png" alt="Upload Demo" width="400"/>
   <img src="screenshots/chatbot_2.png" alt="Upload Demo" width="400"/>
+  <img src="screenshots/chatbot_1.png" alt="Upload Demo" width="400"/>
   
 </div>
 

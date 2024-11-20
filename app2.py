@@ -79,48 +79,63 @@ def extract_features(image_data, model):
     except Exception as e:
         st.error(f"Error processing image: {e}")
         return None
-# Function to get image from Google Drive
-def get_image_from_drive(folder_id, image_path):
-    # Extract the image filename from the path
-    filename = os.path.basename(image_path)
-    # Construct the full Google Drive URL
-    url = f"https://drive.google.com/uc?id={folder_id}/{filename}"
-    response = requests.get(url)
-    return Image.open(BytesIO(response.content))
 
-# Function to get image from Google Drive
+def normalize_path(image_path):
+    """Convert Windows path to normalized filename"""
+    # Extract just the filename from the full path
+    filename = os.path.basename(image_path)
+    
+    # Determine the source folder based on the path
+    source_folder = None
+    if 'images_splash' in image_path.lower():
+        source_folder = 'splash'
+    elif 'images_serp' in image_path.lower():
+        source_folder = 'serp'
+    elif 'images_pexel' in image_path.lower():
+        source_folder = 'pexel'
+    elif 'images_flickr' in image_path.lower():
+        source_folder = 'flickr'
+    
+    return source_folder, filename
+
+
 def get_image_from_drive(image_path):
-    # Determine which folder to use based on the path
-    if 'splash' in image_path.lower():
-        folder_id = SPLASH_FOLDER_ID
-    elif 'serp' in image_path.lower():
-        folder_id = SERP_FOLDER_ID
-    elif 'pexel' in image_path.lower():
-        folder_id = PEXEL_FOLDER_ID
-    elif 'flickr' in image_path.lower():
-        folder_id = FLICKR_FOLDER_ID
-    else:
-        folder_id = GDRIVE_FOLDER_ID
-
-    # Extract the filename from the path
-    filename = os.path.basename(image_path)
-    
-    # Create a cache directory if it doesn't exist
-    os.makedirs('image_cache', exist_ok=True)
-    cache_path = os.path.join('image_cache', filename)
-    
-    # Check if image is already in cache
-    if os.path.exists(cache_path):
-        return Image.open(cache_path)
-    
-    # If not in cache, download from Google Drive
+    """Fetch image from Google Drive based on source folder and filename"""
     try:
-        url = f'https://drive.google.com/uc?id={folder_id}/{filename}'
-        gdown.download(url, cache_path, quiet=True)
-        return Image.open(cache_path)
+        # Get source folder and filename
+        source_folder, filename = normalize_path(image_path)
+        
+        # Map source folders to Google Drive folder IDs
+        folder_id_map = {
+            'splash': SPLASH_FOLDER_ID,
+            'serp': SERP_FOLDER_ID,
+            'pexel': PEXEL_FOLDER_ID,
+            'flickr': FLICKR_FOLDER_ID
+        }
+        
+        folder_id = folder_id_map.get(source_folder, GDRIVE_FOLDER_ID)
+        
+        # Create cache directory if it doesn't exist
+        cache_dir = 'image_cache'
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_path = os.path.join(cache_dir, f"{source_folder}_{filename}")
+        
+        # Check cache first
+        if os.path.exists(cache_path):
+            return Image.open(cache_path)
+            
+        # Download from Google Drive if not in cache
+        file_url = f'https://drive.google.com/uc?id={folder_id}/{filename}'
+        gdown.download(file_url, cache_path, quiet=True)
+        
+        if os.path.exists(cache_path):
+            return Image.open(cache_path)
+        else:
+            st.warning(f"Failed to download image: {filename}")
+            return None
+            
     except Exception as e:
-        st.error(f"Error loading image: {e}")
-        # Return a placeholder image or raise an error
+        st.warning(f"Error processing image {os.path.basename(image_path)}: {str(e)}")
         return None
 
 # Modified find_top_matches_city function

@@ -6,6 +6,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 import warnings
+import gdown
 warnings.filterwarnings('ignore')
 
 # Import TensorFlow and ensure tf-keras is used

@@ -100,15 +100,6 @@ The application can be configured through the `.streamlit/config.toml` file. Key
    - Vector database for the chatbot
    - Generated from your travel knowledge base
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## 🙏 Acknowledgments
 
@@ -119,3 +110,31 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Video Demo
 [![Watch the demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://streamable.com/rzejaj)
+
+## ✨ Features & Screenshots
+
+### 🖼️ Image Upload and Matching
+Upload any travel photo and get matching destinations!
+
+<div align="center">
+  <img src="screenshots/upload-demo.png" alt="Upload Demo" width="400"/>
+  <p><em>Upload any inspiring travel photo</em></p>
+</div>
+
+### 🏨 Hotel Recommendations
+Get personalized hotel suggestions based on your preferences.
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="screenshots/hotel-list.png" alt="Hotel List"/>
+      <p align="center"><em>Hotel Listings</em></p>
+    </td>
+    <td width="50%">
+      <img src="screenshots/hotel-details.png" alt="Hotel Details"/>
+      <p align="center"><em>Detailed Hotel View</em></p>
+    </td>
+  </tr>
+</table>
+
+
